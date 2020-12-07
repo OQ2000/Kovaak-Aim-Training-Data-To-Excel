@@ -1,3 +1,4 @@
+########## IMPORTS ##########
 import pyautogui, sys
 from pyautogui import hotkey, press, moveTo, move, click
 from time import sleep
@@ -14,12 +15,16 @@ from datetime import date
 import msvcrt
 import csv
 from xlsxwriter.workbook import Workbook
+#############################
+
+# Clear Console For Debugging
 clear = lambda: os.system('cls')
 clear()
 
+########## Moves files from srcDir to dstDir ##########
 def MoveAllFiles(srcDir, dstDir):
     def moveAllFilesinDir(srcDir, dstDir):
-    # Check if both the are directories
+    # Check if both are directories
         if os.path.isdir(srcDir) and os.path.isdir(dstDir) :
         # Iterate over all the files in source directory
             for filePath in glob.glob(srcDir + r'\*'):
@@ -30,12 +35,14 @@ def MoveAllFiles(srcDir, dstDir):
     moveAllFilesinDir(srcDir, dstDir)
     sleep(4)
 
+##########
+# the names of the CSV's would contain information on what the csv contains.
+# This function will take all of the relevant information from the name and return it.
 def GetDataFromCSVName(Name):
     Name = Name.replace("- Challenge -","")
     Name = Name.replace("Stats","")
     Name = Name.replace(" ", "")
     Name = Name[0:-5]
-    #CloseLongStrafesInvincible2020.05.13-03.04.31
     tmplen = len(Name)
     Time = Name[tmplen-8::]
     Time = Time.replace(".",":")
@@ -46,16 +53,17 @@ def GetDataFromCSVName(Name):
     Name = Name[0:tmplen-10]
     return(Name,Date,Time)
 
+########## Formats all excel files to remove empty lines.
 def FormatAllExcels(wsActive):
     ws = wsActive.worksheets[0]
     NextEmpty = get_next_empty_cell(ws)
     ws.delete_rows(0,int(NextEmpty))
-
+########## Gets the number of files in dir.
 def GetNoOfCSVs(dir):
     listOfFiles = next(os.walk(dir))[2] #dir is your directory path as string
     NoOfFIles = len(listOfFiles)
     return(NoOfFIles, listOfFiles)
-
+########## Converts all csv's to excel files to be used with openpyxl
 def ConvertAllCSVToExcel():
     for csvfile in glob.glob(os.path.join('.', '*.csv')):
         workbook = Workbook(csvfile[:-4] + '.xlsx')
@@ -72,7 +80,7 @@ def ConvertAllCSVToExcel():
     for file in filtered_files:
         path_to_file = os.path.join(directory, file)
         os.remove(path_to_file)
-
+########## Checks if FindSheetName is a sheet that exists in wbMaster
 def CheckIfTestExistsInMaster(wbMaster, FindSheetName):
     for i in range(len(wbMaster.sheetnames)):
         if(wbMaster.sheetnames[i] == FindSheetName):
@@ -80,7 +88,7 @@ def CheckIfTestExistsInMaster(wbMaster, FindSheetName):
             return(True)
         print(wbMaster.sheetnames[i])
     return(False)
-
+########## takes data from wb
 def GetDataFromExcelIntake(wb):
     ws = wb.worksheets[0]
     Score = float(ws['B15'].value)
@@ -89,7 +97,7 @@ def GetDataFromExcelIntake(wb):
     DamageDone = float(ws['D2'].value)
     DamagePossible = float(ws['E2'].value)
     return(Score,Shots,Hits,DamageDone,DamagePossible)
-
+########## Finds next empty cell. in row in ws.
 def get_next_empty_cell(ws):
     for cell in ws["A"]:
         if cell.value is None:
@@ -99,7 +107,8 @@ def get_next_empty_cell(ws):
             Empty_Cell_Row = cell.row + 1
             # print("Empty cell At: A" + str(Empty_Cell_Row))
     return(Empty_Cell_Row)
-
+########## Simple dict that takes num and converts it to its respective number in the alphabet
+########## For use in openpyxl as it takes numbers in some methods and letters in others.
 def ConvertNumberToLetter(num):
     alphabetList = {
         0 : "A",
@@ -131,13 +140,14 @@ def ConvertNumberToLetter(num):
     }
     print(num, "Converts To:", alphabetList[num])
     return(alphabetList[num])
-
+########## Gets max number of cells in ws.
 def SizeColoumns(ws):
     for x in range(12):
         tmpLetter = ConvertNumberToLetter(x)
         ws.column_dimensions[tmpLetter].width = 20
-
+########## Main Running of program.
 def Main():
+    # Gets current working directory to use to open the correct excel master file.
     path = os.getcwd()
     os.chdir(path)
     wbMaster = load_workbook('InputForAimTraining\MasterAimTrainingDataSet.xlsx')
@@ -209,11 +219,13 @@ def Main():
         
     return(wbMaster, path)
 
+#srcDir is the source directory for the stats in CSV form.
+#dstDir is the directory that the srcDir files will be transfered to.
 srcDir = r"C:\Program Files (x86)\Steam\steamapps\common\FPSAimTrainer\FPSAimTrainer\stats"
 dstDir = r"C:\Users\Owen\Desktop\Projects\InputForAimTraining\csv's to be input"
 
 MoveAllFiles(srcDir, dstDir)
-wbMaster, path= Main()
+wbMaster, path = Main()
 print("Saving To:",path + r"\InputForAimTraining\MasterAimTrainingDataSet.xlsx")
 wbMaster.save(filename = path + r"\InputForAimTraining\MasterAimTrainingDataSet.xlsx")
 
